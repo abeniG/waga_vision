@@ -1,26 +1,179 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════
+   WAGA EYE CLINIC — Premium Design System
+   Luxury medical aesthetic with deep navy, cyan/teal highlights,
+   glassmorphism effects, and futuristic UI design tokens.
+   ═══════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Brand Palette ── */
+  --color-brand-dark: #060A16;
+  --color-brand-navy: #0C1425;
+  --color-brand-navy-light: #162038;
+  --color-brand-teal: #0EA5E9;
+  --color-brand-cyan: #06B6D4;
+  --color-brand-accent: #22D3EE;
+  --color-brand-glow: #38BDF8;
+
+  /* ── Typography ── */
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-outfit);
+}
+
+/* ── CSS Custom Properties ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #060A16;
+  --foreground: #F1F5F9;
+
+  --glass-bg: rgba(12, 20, 37, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-glow: rgba(6, 182, 212, 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ── Base Styles ── */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLASSMORPHISM UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+@utility glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility glass-card-hover {
+  &:hover {
+    border-color: rgba(6, 182, 212, 0.35);
+    box-shadow:
+      0 16px 48px rgba(6, 182, 212, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(-6px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOW & GRADIENT EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+@utility text-glow {
+  text-shadow: 0 0 30px rgba(6, 182, 212, 0.35), 0 0 60px rgba(6, 182, 212, 0.15);
+}
+
+@utility text-glow-strong {
+  text-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.25), 0 0 80px rgba(6, 182, 212, 0.1);
+}
+
+@utility bg-glow-mesh {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.12), transparent 60%),
+    radial-gradient(circle at 15% 25%, rgba(14, 165, 233, 0.08), transparent 50%),
+    radial-gradient(circle at 85% 75%, rgba(34, 211, 238, 0.1), transparent 50%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@utility animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@utility animate-scan {
+  animation: scan-line 3s ease-in-out infinite;
+}
+
+@utility animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CUSTOM SCROLLBAR
+   ═══════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LENIS SMOOTH SCROLL
+   ═══════════════════════════════════════════════════════════════ */
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SELECTION HIGHLIGHT
+   ═══════════════════════════════════════════════════════════════ */
+
+::selection {
+  background: rgba(6, 182, 212, 0.3);
+  color: white;
 }
