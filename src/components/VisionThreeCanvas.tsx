@@ -1,309 +1,370 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Points, PointMaterial } from "@react-three/drei";
-import { useState, useRef, Suspense } from "react";
+import {
+  Environment,
+  Float,
+  MeshTransmissionMaterial,
+} from "@react-three/drei";
+import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
 
-function EyeModel() {
-  const meshRef = useRef<THREE.Group>(null);
-  const eyeballRef = useRef<THREE.Group>(null);
+function RealisticEye() {
+  const eyeGroup = useRef<THREE.Group>(null);
   const pupilRef = useRef<THREE.Mesh>(null);
 
-  // Smooth cursor tracking for the entire eyeball
   useFrame((state) => {
-    const targetX = (state.pointer.x * Math.PI) / 6;
-    const targetY = (state.pointer.y * Math.PI) / 6;
+    if (!eyeGroup.current) return;
 
-    if (eyeballRef.current) {
-      eyeballRef.current.rotation.y = THREE.MathUtils.lerp(
-        eyeballRef.current.rotation.y,
-        targetX,
-        0.06
-      );
-      eyeballRef.current.rotation.x = THREE.MathUtils.lerp(
-        eyeballRef.current.rotation.x,
-        -targetY,
-        0.06
-      );
-    }
+    const tx = THREE.MathUtils.clamp(state.pointer.x * 0.25, -0.25, 0.25);
+    const ty = THREE.MathUtils.clamp(state.pointer.y * 0.18, -0.18, 0.18);
 
-    // Pupil dilation effect based on mouse position
+    eyeGroup.current.rotation.y = THREE.MathUtils.lerp(
+      eyeGroup.current.rotation.y,
+      tx,
+      0.05
+    );
+
+    eyeGroup.current.rotation.x = THREE.MathUtils.lerp(
+      eyeGroup.current.rotation.x,
+      -ty,
+      0.05
+    );
+
+    // subtle living eye motion
+    eyeGroup.current.rotation.x +=
+      Math.sin(state.clock.elapsedTime * 0.8) * 0.0005;
+
+    // pupil dilation
     if (pupilRef.current) {
-      const distance = Math.sqrt(state.pointer.x ** 2 + state.pointer.y ** 2);
-      const targetScale = 1 - distance * 0.3;
-      pupilRef.current.scale.x = THREE.MathUtils.lerp(pupilRef.current.scale.x, targetScale, 0.1);
-      pupilRef.current.scale.y = THREE.MathUtils.lerp(pupilRef.current.scale.y, targetScale, 0.1);
+      const s =
+        0.95 +
+        Math.sin(state.clock.elapsedTime * 2.0) * 0.03 +
+        Math.abs(state.pointer.x * 0.05);
+
+      pupilRef.current.scale.x = THREE.MathUtils.lerp(
+        pupilRef.current.scale.x,
+        s,
+        0.08
+      );
+
+      pupilRef.current.scale.y = THREE.MathUtils.lerp(
+        pupilRef.current.scale.y,
+        s,
+        0.08
+      );
     }
   });
 
+  const irisFibers = useMemo(() => {
+    return Array.from({ length: 220 }).map((_, i) => {
+      const angle = (i / 220) * Math.PI * 2;
+
+      const radius = 0.35 + Math.random() * 0.4;
+
+      return {
+        angle,
+        radius,
+        length: 0.2 + Math.random() * 0.35,
+        opacity: 0.15 + Math.random() * 0.4,
+        color:
+          Math.random() > 0.5
+            ? "#7dd3fc"
+            : Math.random() > 0.5
+              ? "#38bdf8"
+              : "#0f766e",
+      };
+    });
+  }, []);
+
+  const lashes = useMemo(() => {
+    return Array.from({ length: 70 }).map((_, i) => {
+      const angle = (i / 70) * Math.PI;
+
+      return {
+        x: Math.cos(angle) * 2.0,
+        y: Math.sin(angle) * 0.55 + 0.45,
+        rot: angle - Math.PI / 2 + (Math.random() - 0.5) * 0.5,
+        len: 0.18 + Math.random() * 0.22,
+        thick: 0.008 + Math.random() * 0.015,
+      };
+    });
+  }, []);
+
   return (
-    <>
-      {/* OUTER EYE STRUCTURES */}
+    <group>
 
-      {/* Sclera (White of the eye) - Outer shell */}
-      <mesh scale={[1.2, 0.6, 1]}>
-        <sphereGeometry args={[1.9, 64, 64]} />
-        <meshPhysicalMaterial
-          color="#f8f9fa"
-          roughness={0.1}
-          metalness={0.0}
-          clearcoat={0.3}
-          clearcoatRoughness={0.2}
-          transparent
-          opacity={0.95}
+      {/* FACE SKIN */}
+      <mesh scale={[4.8, 3.2, 1]}>
+        <sphereGeometry args={[1, 128, 128]} />
+        <meshStandardMaterial
+          color="#c58f72"
+          roughness={0.95}
+          metalness={0}
         />
       </mesh>
 
-      {/* Blood vessel network on sclera */}
-      <mesh scale={[1.21, 0.61, 1.01]}>
-        <sphereGeometry args={[1.9, 64, 64]} />
+      {/* EYE SOCKET SHADOW */}
+      <mesh position={[0, 0, -0.2]} scale={[2.5, 1.2, 0.4]}>
+        <sphereGeometry args={[1, 64, 64]} />
         <meshStandardMaterial
-          color="#ff6b6b"
-          transparent
-          opacity={0.05}
+          color="#8b5e4a"
           roughness={1}
-        />
-      </mesh>
-
-      {/* Cornea - Transparent front layer */}
-      <mesh scale={[1.15, 0.58, 1.05]} position={[0, 0, 0.1]}>
-        <sphereGeometry args={[1.85, 64, 64]} />
-        <meshPhysicalMaterial
-          color="#ffffff"
-          transmission={0.95}
-          roughness={0.01}
-          thickness={0.5}
-          ior={1.376}
-          clearcoat={1.0}
-          clearcoatRoughness={0.0}
           transparent
-          opacity={0.15}
+          opacity={0.35}
         />
       </mesh>
 
-      {/* Upper Eyelid - More realistic shape */}
-      <mesh position={[0, 0.3, 0.5]} rotation={[-0.2, 0, 0]} scale={[1.25, 0.6, 1.2]}>
-        <torusGeometry args={[2.0, 0.3, 32, 100, Math.PI]} />
+      {/* UPPER EYELID */}
+      <mesh position={[0, 0.95, 0.3]} scale={[2.25, 0.95, 1]}>
+        <sphereGeometry
+          args={[1, 64, 64, 0, Math.PI * 2, 0, Math.PI / 2]}
+        />
         <meshStandardMaterial
-          color="#2c1810"
-          roughness={0.6}
-          metalness={0.1}
+          color="#bb8164"
+          roughness={0.92}
+          metalness={0}
         />
       </mesh>
 
-      {/* Lower Eyelid */}
-      <mesh position={[0, -0.3, 0.5]} rotation={[0.2, 0, Math.PI]} scale={[1.25, 0.45, 1.2]}>
-        <torusGeometry args={[2.0, 0.25, 32, 100, Math.PI]} />
+      {/* LOWER EYELID */}
+      <mesh
+        position={[0, -0.95, 0.3]}
+        rotation={[Math.PI, 0, 0]}
+        scale={[2.1, 0.65, 1]}
+      >
+        <sphereGeometry
+          args={[1, 64, 64, 0, Math.PI * 2, 0, Math.PI / 2]}
+        />
         <meshStandardMaterial
-          color="#2c1810"
-          roughness={0.6}
-          metalness={0.1}
+          color="#c08b70"
+          roughness={0.95}
         />
       </mesh>
 
-      {/* Eyelid crease - Upper */}
-      <mesh position={[0, 0.8, 0.4]} rotation={[-0.15, 0, 0]} scale={[1.22, 0.55, 1.1]}>
-        <torusGeometry args={[1.95, 0.05, 16, 100, Math.PI]} />
-        <meshStandardMaterial
-          color="#1a0f0a"
-          roughness={0.8}
-        />
-      </mesh>
+      {/* EYELASHES */}
+      {lashes.map((lash, i) => (
+        <mesh
+          key={i}
+          position={[lash.x, lash.y, 0.78]}
+          rotation={[
+            Math.random() * 0.25,
+            Math.random() * 0.15,
+            lash.rot,
+          ]}
+        >
+          <cylinderGeometry args={[lash.thick, 0.001, lash.len, 8]} />
+          <meshStandardMaterial color="#120c08" roughness={0.7} />
+        </mesh>
+      ))}
 
-      {/* Eyelashes - Upper */}
-      {Array.from({ length: 20 }).map((_, i) => {
-        const angle = (i / 20) * Math.PI;
-        const x = Math.cos(angle) * 2.0 * 1.2;
-        const y = Math.sin(angle) * 0.6 + 0.4;
-        return (
-          <mesh key={`lash-upper-${i}`} position={[x, y, 0.4]} rotation={[0, 0, angle - Math.PI / 2]}>
-            <cylinderGeometry args={[0.02, 0.005, 0.3, 8]} />
-            <meshStandardMaterial color="#1a0f0a" roughness={0.5} />
+      {/* EYEBALL */}
+      <group ref={eyeGroup}>
+
+        {/* SCLERA */}
+        <mesh>
+          <sphereGeometry args={[1.35, 128, 128]} />
+          <meshPhysicalMaterial
+            color="#f1eee8"
+            roughness={0.28}
+            clearcoat={0.6}
+            clearcoatRoughness={0.15}
+          />
+        </mesh>
+
+        {/* SUBTLE BLOOD VESSEL TINT */}
+        <mesh scale={[1.003, 1.003, 1.003]}>
+          <sphereGeometry args={[1.35, 128, 128]} />
+          <meshStandardMaterial
+            color="#ffb3b3"
+            transparent
+            opacity={0.025}
+          />
+        </mesh>
+
+        {/* IRIS DEPTH */}
+        <mesh position={[0, 0, 1.03]} scale={[1, 1, 0.15]}>
+          <sphereGeometry args={[0.72, 128, 128]} />
+          <meshStandardMaterial
+            color="#5f7c5b"
+            roughness={0.35}
+            metalness={0.05}
+          />
+        </mesh>
+
+        {/* LIMBAL RING */}
+        <mesh position={[0, 0, 1.02]}>
+          <ringGeometry args={[0.69, 0.77, 128]} />
+          <meshBasicMaterial
+            color="#111111"
+            transparent
+            opacity={0.65}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+
+        {/* IRIS FIBERS */}
+        {irisFibers.map((fiber, i) => (
+          <mesh
+            key={i}
+            position={[
+              Math.cos(fiber.angle) * fiber.radius * 0.4,
+              Math.sin(fiber.angle) * fiber.radius * 0.4,
+              1.04,
+            ]}
+            rotation={[0, 0, fiber.angle]}
+          >
+            <planeGeometry args={[fiber.length, 0.012]} />
+            <meshBasicMaterial
+              color={fiber.color}
+              transparent
+              opacity={fiber.opacity}
+              side={THREE.DoubleSide}
+            />
           </mesh>
-        );
-      })}
+        ))}
 
-      {/* EYEBALL GROUP - Rotates with cursor */}
-      <group ref={eyeballRef}>
+        {/* INNER GOLDEN DETAILS */}
+        {Array.from({ length: 60 }).map((_, i) => {
+          const angle = (i / 60) * Math.PI * 2;
 
-        {/* Iris - Colored part */}
-        <mesh position={[0, 0, 0.3]}>
-          <circleGeometry args={[0.9, 64]} />
-          <meshStandardMaterial
-            color="#3b82f6"
-            roughness={0.2}
-            metalness={0.1}
-          />
-        </mesh>
-
-        {/* Iris detail ring */}
-        <mesh position={[0, 0, 0.31]}>
-          <torusGeometry args={[0.85, 0.15, 16, 100]} />
-          <meshStandardMaterial
-            color="#1e40af"
-            roughness={0.1}
-            metalness={0.2}
-            emissive="#1e3a8a"
-            emissiveIntensity={0.3}
-          />
-        </mesh>
-
-        {/* Iris texture - Radial lines */}
-        {Array.from({ length: 36 }).map((_, i) => {
-          const angle = (i / 36) * Math.PI * 2;
           return (
             <mesh
-              key={`iris-line-${i}`}
+              key={i}
               position={[
-                Math.cos(angle) * 0.45,
-                Math.sin(angle) * 0.45,
-                0.32
+                Math.cos(angle) * 0.16,
+                Math.sin(angle) * 0.16,
+                1.045,
               ]}
               rotation={[0, 0, angle]}
             >
-              <planeGeometry args={[0.4, 0.03]} />
-              <meshStandardMaterial
-                color="#60a5fa"
+              <planeGeometry args={[0.16, 0.01]} />
+              <meshBasicMaterial
+                color="#eab308"
                 transparent
-                opacity={0.3}
-                side={THREE.DoubleSide}
+                opacity={0.5}
               />
             </mesh>
           );
         })}
 
-        {/* Pupil - Black center */}
-        <mesh ref={pupilRef} position={[0, 0, 0.35]}>
-          <circleGeometry args={[0.35, 64]} />
-          <meshStandardMaterial
-            color="#000000"
-            roughness={0.0}
-            metalness={0.0}
+        {/* PUPIL */}
+        <mesh ref={pupilRef} position={[0, 0, 0.97]}>
+          <circleGeometry args={[0.19, 128]} />
+          <meshBasicMaterial color="#000000" />
+        </mesh>
+
+        {/* CORNEA */}
+        <mesh position={[0, 0, 0.12]} scale={[1.02, 1.02, 1.15]}>
+          <sphereGeometry args={[1.36, 128, 128]} />
+          <MeshTransmissionMaterial
+            transmission={1}
+            thickness={0.55}
+            roughness={0}
+            chromaticAberration={0.015}
+            anisotropy={0.1}
+            distortion={0.02}
+            distortionScale={0.08}
+            temporalDistortion={0.02}
+            ior={1.4}
+            clearcoat={1}
           />
         </mesh>
 
-        {/* Lens flare highlight */}
-        <mesh position={[-0.3, 0.3, 0.38]}>
-          <circleGeometry args={[0.15, 32]} />
+        {/* REFLECTIONS */}
+        <mesh position={[-0.28, 0.28, 1.34]}>
+          <circleGeometry args={[0.09, 64]} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
-            opacity={0.4}
+            opacity={0.95}
           />
         </mesh>
 
-        <mesh position={[0.2, -0.2, 0.38]}>
-          <circleGeometry args={[0.08, 32]} />
+        <mesh position={[0.18, -0.18, 1.34]}>
+          <circleGeometry args={[0.045, 64]} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
-            opacity={0.2}
+            opacity={0.5}
           />
         </mesh>
 
       </group>
 
-      {/* Moisture/tear film at bottom */}
-      <mesh position={[0, -0.9, 0.2]} rotation={[0.1, 0, 0]} scale={[1.1, 0.1, 0.8]}>
-        <sphereGeometry args={[1.8, 32, 32]} />
+      {/* TEAR LINE */}
+      <mesh
+        position={[0, -0.72, 0.85]}
+        rotation={[0.08, 0, 0]}
+        scale={[1.15, 0.07, 0.12]}
+      >
+        <sphereGeometry args={[1, 64, 64]} />
         <meshPhysicalMaterial
-          color="#ffffff"
-          roughness={0.01}
-          metalness={0.0}
-          clearcoat={1.0}
+          transmission={1}
+          roughness={0}
+          thickness={1}
+          clearcoat={1}
           transparent
-          opacity={0.3}
+          opacity={0.85}
         />
       </mesh>
-
-      {/* Ambient glow around eye */}
-      <mesh position={[0, 0, -0.1]}>
-        <sphereGeometry args={[2.1, 32, 32]} />
-        <meshBasicMaterial
-          color="#3b82f6"
-          transparent
-          opacity={0.05}
-          side={THREE.BackSide}
-        />
-      </mesh>
-    </>
-  );
-}
-
-function RetinaParticles() {
-  const pointsRef = useRef<THREE.Points>(null);
-
-  useFrame((state) => {
-    if (pointsRef.current) {
-      pointsRef.current.rotation.y += 0.0002;
-      pointsRef.current.rotation.x += 0.0001;
-    }
-  });
-
-  const [positions] = useState(() => {
-    const count = 2000;
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const u = Math.random();
-      const v = Math.random();
-      const theta = u * 2.0 * Math.PI;
-      const phi = Math.acos(2.0 * v - 1.0);
-      const r = 3.0 + Math.random() * 1.5;
-
-      arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      arr[i * 3 + 2] = r * Math.cos(phi);
-    }
-    return arr;
-  });
-
-  return (
-    <group>
-      <Points ref={pointsRef} positions={positions} stride={3} frustumCulled={false}>
-        <PointMaterial
-          transparent
-          color="#60a5fa"
-          size={0.03}
-          sizeAttenuation={true}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </Points>
     </group>
   );
 }
 
 export default function VisionThreeCanvas() {
   return (
-    <div className="w-full h-full min-h-[400px] md:min-h-[600px] relative flex items-center justify-center">
+    <div className="w-full h-screen bg-black">
       <Suspense
         fallback={
-          <div className="absolute text-blue-400 font-mono text-xs tracking-[0.2em] animate-pulse uppercase">
-            Loading Realistic Eye...
+          <div className="w-full h-full flex items-center justify-center text-white tracking-[0.3em] uppercase">
+            Loading Eye...
           </div>
         }
       >
         <Canvas
-          camera={{ position: [0, 0, 6.5], fov: 45 }}
-          className="w-full h-full"
-          gl={{ antialias: true, alpha: true }}
+          camera={{
+            position: [0, 0, 4],
+            fov: 28,
+          }}
+          gl={{
+            antialias: true,
+            alpha: true,
+          }}
         >
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[8, 8, 4]} intensity={2.0} color="#ffffff" />
-          <directionalLight position={[-5, 5, -2]} intensity={0.8} color="#87ceeb" />
-          <pointLight position={[-8, -8, -4]} intensity={0.8} color="#3b82f6" />
-          <pointLight position={[4, -4, 8]} intensity={1.5} color="#60a5fa" />
-          <spotLight
-            position={[5, 5, 10]}
-            angle={0.5}
-            penumbra={0.5}
-            intensity={3}
+          {/* LIGHTING */}
+          <ambientLight intensity={0.3} />
+
+          <directionalLight
+            position={[3, 4, 5]}
+            intensity={2.8}
             color="#ffffff"
-            castShadow={false}
           />
-          <EyeModel />
-          <RetinaParticles />
+
+          <directionalLight
+            position={[-4, 2, 1]}
+            intensity={0.8}
+            color="#ffe7d1"
+          />
+
+          <spotLight
+            position={[0, 6, 8]}
+            angle={0.3}
+            penumbra={1}
+            intensity={2.5}
+            color="#ffffff"
+          />
+
+          {/* HDRI */}
+          <Environment preset="studio" />
+
+          <Float
+            speed={1}
+            rotationIntensity={0.08}
+            floatIntensity={0.08}
+          >
+            <RealisticEye />
+          </Float>
         </Canvas>
       </Suspense>
     </div>

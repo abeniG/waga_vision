@@ -47,7 +47,7 @@ export default function LoadingScreen() {
 
           <div className="relative flex flex-col items-center">
             {/* Animated logo */}
-            <div className="relative w-28 h-28 mb-8 flex items-center justify-center">
+            <div className="relative w-28 h-28 mb-8 flex items-center justify-center overflow-hidden rounded-3xl bg-slate-950/40 border border-white/10">
               {/* Orbital rings */}
               <motion.div
                 animate={{ rotate: 360 }}
@@ -65,39 +65,33 @@ export default function LoadingScreen() {
                 className="absolute inset-4 border border-brand-accent/10 rounded-full"
               />
 
-              {/* Eye icon with draw animation */}
-              <svg
-                className="w-14 h-14 text-brand-cyan relative z-10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <motion.path
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.5, ease: "easeInOut" }}
-                  d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                />
-                <motion.circle
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.5, duration: 0.6, type: "spring" }}
-                  cx="12"
-                  cy="12"
-                  r="3.5"
-                  className="fill-brand-cyan/10"
-                />
-                <motion.circle
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 0.3, 1] }}
-                  transition={{ delay: 1, duration: 2, repeat: Infinity }}
-                  cx="13.5"
-                  cy="10.5"
-                  r="0.75"
-                  className="fill-white stroke-none"
-                />
-              </svg>
+              <div className="relative z-10 w-full h-full flex items-center justify-center p-4">
+                <svg
+                  className="w-full h-full max-w-[140px] max-h-[140px]"
+                  viewBox="0 0 120 120"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="60" cy="60" r="58" stroke="#22d3ee" strokeWidth="4" opacity="0.2" />
+                  <path
+                    d="M12 60c18-28 30-38 48-38s30 10 48 38c-18 28-30 38-48 38S30 88 12 60Z"
+                    stroke="#7dd3fc"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="60" cy="60" r="24" fill="#22d3ee" opacity="0.12" />
+                  <circle cx="60" cy="60" r="16" fill="#0f172a" />
+                  <circle cx="68" cy="52" r="4" fill="#ffffff" opacity="0.95" />
+                  <path
+                    d="M42 64c10 12 26 12 36 0"
+                    stroke="#ffffff"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    opacity="0.4"
+                  />
+                </svg>
+              </div>
             </div>
 
             {/* Brand text */}

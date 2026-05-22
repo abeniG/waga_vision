@@ -12,7 +12,7 @@ import ServiceCard from "@/components/ServiceCard";
 import VisionSlider from "@/components/VisionSlider";
 import TechShowcase from "@/components/TechShowcase";
 import FaqSection from "@/components/FaqSection";
-import VisionThreeCanvasWrapper from "@/components/VisionThreeCanvasWrapper";
+import EyeTracker from "@/components/EyeTracker";
 import { ParallaxScroll, ParallaxImage } from "@/components/ParallaxScroll";
 
 export const metadata: Metadata = {
@@ -93,10 +93,8 @@ export default function Home() {
             </div>
           </ParallaxScroll>
 
-          {/* Hero Right 3D Visualizer (with counter parallax for floating depth) */}
-          <ParallaxScroll offset={-50} className="lg:col-span-6 h-[400px] md:h-[600px] relative w-full flex items-center justify-center">
-            <div className="absolute inset-0 bg-radial-gradient from-brand-cyan/5 via-transparent to-transparent pointer-events-none rounded-full blur-2xl" />
-            <VisionThreeCanvasWrapper />
+          <ParallaxScroll offset={-50} className="lg:col-span-6 h-[420px] md:h-[600px] relative w-full flex items-center justify-center">
+            <EyeTracker />
           </ParallaxScroll>
         </div>
       </section>

@@ -23,36 +23,24 @@ const navLinks = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Show/hide based on scroll direction
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setHidden(true);
-      } else {
-        setHidden(false);
-      }
-
-      setScrolled(currentScrollY > 20);
-      setLastScrollY(currentScrollY);
+      setScrolled(window.scrollY > 20);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   return (
     <>
       <motion.header
         initial={{ y: 0 }}
-        animate={{ y: hidden ? -120 : 0 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-slate-950/20 transition-all duration-500 ${
           scrolled ? "py-3" : "py-5"
         }`}
       >
@@ -61,7 +49,7 @@ export default function Navbar() {
             className={`flex items-center justify-between px-5 py-2.5 rounded-full transition-all duration-500 ${
               scrolled
                 ? "glass shadow-lg shadow-black/20"
-                : "bg-transparent"
+                : "glass"
             }`}
           >
             {/* Logo */}
@@ -89,7 +77,7 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Links */}
-            <div className="hidden lg:flex items-center gap-0.5">
+            <div className="hidden lg:flex items-center gap-0.5 overflow-x-auto">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
                 return (
