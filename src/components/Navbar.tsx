@@ -68,7 +68,7 @@ export default function Navbar() {
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-bold text-base tracking-wider text-slate-100 uppercase leading-none">
-                  Waga
+                  Wgga
                 </span>
                 <span className="text-[8px] tracking-[0.25em] text-brand-teal uppercase leading-none mt-0.5">
                   Eye Clinic
